@@ -4,7 +4,9 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Models\Boleta;
-use App\Http\Resources\BoletaResource;
+use App\Models\User;
+use App\Models\Sorteo;
+use Carbon\Carbon;
 
 class BoletasController extends Controller
 {
@@ -15,7 +17,11 @@ class BoletasController extends Controller
      */
     public function index()
     {
-        return Boleta::all();
+        $sorteos_actuales = Sorteo::where('ini','<=', Carbon::now())
+            ->where('fin','>=', Carbon::now())
+            ->pluck('id');
+        $boletas = Boleta::whereIn('sorteo_id',$sorteos_actuales)->pluck('codigo');
+        return $boletas;
     }
 
     /**
@@ -23,10 +29,7 @@ class BoletasController extends Controller
      *
      * @return \Illuminate\Http\Response
      */
-    public function create()
-    {
-        //
-    }
+    public function create() { }
 
     /**
      * Store a newly created resource in storage.
@@ -36,7 +39,23 @@ class BoletasController extends Controller
      */
     public function store(Request $request)
     {
-        //
+        $request['ganadora'] = false;
+        //se genera un correo aleatoreo, dado que la app no lo pide
+        $gmailGenerico = "generico".random_int(-999,99999999).'@gmail.com';
+        $usuarioNuevo = User::create([
+            'name' => $request['nombre'],
+            'email' => $gmailGenerico,
+            'password' => bcrypt('password')
+        ]);
+
+        //se recuperan los datos de la boleta
+        $request['user_id'] = $usuarioNuevo['id'];
+
+        $request['sorteo_id'] = $request['sorteo_id'];
+        $request['cuando_se_vendio'] = Carbon::now('America/Bogota');
+
+        $Boleta = Boleta::create($request->all());
+        return response()->json(['id' => $Boleta->id]);
     }
 
     /**
@@ -45,9 +64,16 @@ class BoletasController extends Controller
      * @param  int  $id
      * @return \Illuminate\Http\Response
      */
-    public function show($id)
+    public function show($sorteo_id)
     {
-        return Boleta::findOrFail($id);
+        $boletas = Boleta::Where('sorteo_id',$sorteo_id)->orderBy('cuando_se_vendio')->take(5)->get();
+        foreach ($boletas as $key => $value) {
+            $boletas[$key]['Usuario_nombre'] = User::findOrFail($value['user_id'])->name;
+            $sorteoElement = Sorteo::findOrFail($value['sorteo_id']);
+            $boletas[$key]['Sorteo'] = $sorteoElement->numero;
+            $boletas[$key]['Premio'] = $sorteoElement->valor_ganable;
+        }
+        return $boletas;
     }
 
     /**

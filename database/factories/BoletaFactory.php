@@ -17,12 +17,12 @@ class BoletaFactory extends Factory
     public function definition()
     {
         return [
-            'codigo' => $this->faker->word(),
+            'codigo' => $this->faker->numberBetween(1,1000),
             'costo' => ($this->faker->randomNumber(2, true)*1000),
-            'ganadora' => false,
+            'ganadora' => $this->faker->numberBetween(0, 1),
             'user_id' => $this->faker->numberBetween(1, 10),
-            'sorteo_id' => $this->faker->numberBetween(1, 2),
-            'cuando_se_vendio' => $this->faker->dateTimeBetween('-1 week', '+1 week')
+            'sorteo_id' => $this->faker->numberBetween(1, 20),
+            'cuando_se_vendio' => $this->faker->dateTimeBetween('-2 week', '-1 week')
         ];
     }
 }

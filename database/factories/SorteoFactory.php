@@ -18,8 +18,8 @@ class SorteoFactory extends Factory
     {
         return [
             'numero' => $this->faker->randomNumber(5, true),
-            'ini' => $this->faker->dateTimeBetween('+1 week', '+3 week'),
-            'fin' => $this->faker->dateTimeBetween('-2 week', '+1 week'),
+            'ini' => $this->faker->dateTimeBetween('-5 week', '-2 week'),
+            'fin' => $this->faker->dateTimeBetween('-1 week', '+3 week'),
             'valor_ganable' => ($this->faker->randomNumber(1, true)*1000000),
             'activa' => 1,
         ];
